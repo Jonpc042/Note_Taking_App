@@ -1,4 +1,9 @@
 import wx
+import pymongo
+
+myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+
+mydb = myclient["Notepad"]
 
 class Login(wx.Frame):
     def login_clicked(self, e):
@@ -10,6 +15,11 @@ class Login(wx.Frame):
         print("Time to go!")
         quit()
 
+    def register_clicked(self, e):
+        self.Hide()
+        print("Let's Register!")
+        from Registration import Registration
+
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title)
         self.panel = wx.Panel(self)
@@ -20,8 +30,10 @@ class Login(wx.Frame):
 
         self.loginbutton = wx.Button(self.panel, label="Login", pos=(130, 10), size=(60,30))
         self.exitbutton = wx.Button(self.panel, label="Exit", pos=(130, 50), size=(60,30))
+        self.registerbutton = wx.Button(self.panel, label="Register", pos=(130, 90), size=(60,30))
         self.loginbutton.Bind(wx.EVT_BUTTON, self.login_clicked)
         self.exitbutton.Bind(wx.EVT_BUTTON, self.exit_clicked)
+        self.registerbutton.Bind(wx.EVT_BUTTON, self.register_clicked)
 
         # Set sizer for the frame, so we can change frame size to match widgets
         self.windowSizer = wx.BoxSizer()
@@ -33,8 +45,9 @@ class Login(wx.Frame):
         self.sizer.Add(self.loginfield, (1, 0))
         self.sizer.Add(self.passtitle, (2, 0))
         self.sizer.Add(self.passfield, (3, 0))
-        self.sizer.Add(self.loginbutton, (4, 0))
-        self.sizer.Add(self.exitbutton, (5, 0))
+        self.sizer.Add(self.registerbutton, (4, 0))
+        self.sizer.Add(self.loginbutton, (5, 0))
+        self.sizer.Add(self.exitbutton, (6, 0))
 
         # Set simple sizer for a nice border
         self.border = wx.BoxSizer()

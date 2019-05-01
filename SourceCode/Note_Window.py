@@ -32,4 +32,5 @@ class NoteWindow(wx.Frame):
 
 app = wx.App(False)
 frame = NoteWindow(None, "Sample editor")
+frame.Center()
 app.MainLoop()
