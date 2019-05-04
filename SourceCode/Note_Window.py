@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 import wx
 import sys
+import MyPanel
+import Note
+
+ID_BUTTON1=300
 
 def OnFrameExit(event):
     quit()
@@ -12,10 +16,13 @@ class NoteWindow(wx.Frame):
 
         #self.control = wx.TextCtrl(self, style=wx.TE_MULTILINE)
         txt = wx.TextCtrl(self)
-        s = wx.BoxSizer(wx.HORIZONTAL)
-        s.Add(txt, 1)
-        self.SetSizer(s)
+        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        mainSizer.Add(txt, 1)
+        self.SetSizer(mainSizer)
         self.Layout()
+
+        groupPanel = MyPanel.MyPanel(self)
+        notePanel = MyPanel.MyPanel(self)
 
         self.CreateStatusBar()
 
@@ -42,8 +49,18 @@ class NoteWindow(wx.Frame):
         wx.EVT_MENU(self, wx.ID_SAVE, self.OnSave)  # just "pass" in our demo
         wx.EVT_MENU(self, wx.ID_SAVEAS, self.OnSaveAs)
 
-        self.sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-        self.buttons = []
+        groupPanel.sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        groupPanel.buttons = []
+        # Note - give the buttons numbers 1 to 6, generating events 301 to 306
+        # because IB_BUTTON1 is 300
+        for i in range(6):
+            # describe a button
+            bid = i + 1
+            groupPanel.buttons.append(wx.Button(self, ID_BUTTON1 + i, "Button &" + str(bid)))
+            # add that button to the sizer2 geometry
+            groupPanel.sizer2.Add(groupPanel.buttons[i], 1, wx.EXPAND)
+
+        self.SetAutoLayout(1)
 
         #Adds a button event listener to exit the program.
         self.Bind(wx.EVT_MENU, OnFrameExit, id=wx.ID_EXIT)
