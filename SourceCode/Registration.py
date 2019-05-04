@@ -1,5 +1,8 @@
 import wx
 import pymongo
+import hashlib
+import random
+import string
 
 class Registration(wx.Frame):
 
@@ -22,9 +25,21 @@ class Registration(wx.Frame):
 
         if password == passwordverify:
             print("YAY! We registered successfully!")
-            mydict = { "username": username, "email": email, "password": password }
+
+
+            mystring = ""
+
+            for int in range(30):
+                mystring = mystring + (random.choice(string.printable))
+
+            myhash = hashlib.sha512(( mystring + password).encode('utf-8')).hexdigest()
+
+            mydict = { "username": username, "email": email, "password": myhash , "salt": mystring}
 
             x = mycol.insert_one(mydict)
+
+
+
         elif password != passwordverify:
             print("Registration Failed!")
             app = wx.App(False)

@@ -1,5 +1,6 @@
 import wx
 import pymongo
+import hashlib
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 
@@ -9,7 +10,31 @@ class Login(wx.Frame):
     def login_clicked(self, e):
         self.Hide()
         print("Button Pressed.")
-        from Note_Window import NoteWindow
+
+        myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+        mydb = myclient["Notepad"]
+        mycol = mydb["users"]
+
+        username = self.loginfield.GetValue()
+        password = self.passfield.GetValue()
+
+        myquery = { "username": username }
+        for mydoc in mycol.find(myquery, {"_id":0 , "password": 1 , "salt": 1}):
+            print(mydoc)
+            print(mydoc.get("salt"))
+            print(mydoc.get("password"))
+
+            hashedpass = mydoc.get("password")
+            mysalt = str(mydoc.get("salt"))
+            myhash = hashlib.sha512((mysalt + password).encode('utf-8')).hexdigest()
+
+            print(myhash)
+
+            if myhash == hashedpass:
+                self.Hide()
+                from Note_Window import NoteWindow
+            elif myhash != hashedpass:
+                print("INCORRECT PASSWORD")
 
     def exit_clicked(event, e):
         print("Time to go!")
@@ -19,6 +44,9 @@ class Login(wx.Frame):
         self.Hide()
         print("Let's Register!")
         from Registration import Registration
+
+    def show_win(self, e):
+        self.Show()
 
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title)
