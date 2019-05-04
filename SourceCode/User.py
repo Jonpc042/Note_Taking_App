@@ -12,9 +12,6 @@ class note():
         self.passwordSalt = ""
         self.hashedPassword = ""
 
-    def __init__(self, userDict):
-        self.userID =
-
     def toDocument(self) -> dict:
         mydict = {"UserID": self.userID,
                   "Email": self.emailAddress,
@@ -22,3 +19,9 @@ class note():
                   "Hash": self.hashedPassword}
         return mydict
 
+    def fromDocument(cls, dict):
+        userid = dict.get("UserID")
+        emailaddress = dict.get("Email")
+        salt = dict.get("Salt")
+        hash = dict.get("Hash")
+        return cls(userid, emailaddress, salt, hash)
