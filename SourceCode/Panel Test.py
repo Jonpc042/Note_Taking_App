@@ -24,7 +24,7 @@ class Example(wx.Frame):
         hbox1.Add(st1, flag=wx.RIGHT, border=8)
         tc = wx.TextCtrl(panel)
         hbox1.Add(tc, proportion=1)
-        vbox.Add(hbox1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+        vbox.Add(hbox1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=20)
 
         vbox.Add((-1, 10))
 

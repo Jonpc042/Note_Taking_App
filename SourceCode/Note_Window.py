@@ -14,15 +14,10 @@ class NoteWindow(wx.Frame):
         super(NoteWindow, self).__init__(parent, title=title,
                                       size=(800, 600))
 
-        #self.control = wx.TextCtrl(self, style=wx.TE_MULTILINE)
-        txt = wx.TextCtrl(self)
         mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        mainSizer.Add(txt, 1)
+        groupPanelSizer = wx.BoxSizer(wx.VERTICAL)
+        notePanelSizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(mainSizer)
-        self.Layout()
-
-        groupPanel = MyPanel.MyPanel(self)
-        notePanel = MyPanel.MyPanel(self)
 
         self.CreateStatusBar()
 
@@ -49,18 +44,29 @@ class NoteWindow(wx.Frame):
         wx.EVT_MENU(self, wx.ID_SAVE, self.OnSave)  # just "pass" in our demo
         wx.EVT_MENU(self, wx.ID_SAVEAS, self.OnSaveAs)
 
-        groupPanel.sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-        groupPanel.buttons = []
+        #THIS IS TEMPORARY TEST CODE
+        noteSizer = wx.BoxSizer(wx.HORIZONTAL)
+        txt = wx.TextCtrl(self)
+        chk = wx.CheckBox(self, wx.ID_ANY, "")
+        btn = wx.Button(self, wx.ID_ANY, "Details")
+        noteSizer.Add(chk, flag=wx.ALL, border=10)
+        noteSizer.Add(txt, 1, flag=wx.EXPAND | wx.ALL, border=10)
+        noteSizer.Add(btn, flag=wx.ALL, border=10)
+        notePanelSizer.Add(noteSizer, flag= wx.EXPAND | wx.ALL, border=10)
+        #END TEMPORARY TEST CODE
+
+        self.buttons = []
         # Note - give the buttons numbers 1 to 6, generating events 301 to 306
         # because IB_BUTTON1 is 300
         for i in range(6):
             # describe a button
             bid = i + 1
-            groupPanel.buttons.append(wx.Button(self, ID_BUTTON1 + i, "Button &" + str(bid)))
+            self.buttons.append(wx.Button(self, ID_BUTTON1 + i, "Button &" + str(bid)))
             # add that button to the sizer2 geometry
-            groupPanel.sizer2.Add(groupPanel.buttons[i], 1, wx.EXPAND)
+            groupPanelSizer.Add(self.buttons[i], flag = wx.ALL, border = 10)
 
-        self.SetAutoLayout(1)
+        mainSizer.Add(groupPanelSizer, flag = wx.EXPAND)
+        mainSizer.Add(notePanelSizer, 1, flag= wx.EXPAND)
 
         #Adds a button event listener to exit the program.
         self.Bind(wx.EVT_MENU, OnFrameExit, id=wx.ID_EXIT)
