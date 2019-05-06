@@ -3,6 +3,7 @@ import pymongo
 import hashlib
 import random
 import string
+import NoteAppClient
 
 class Registration(wx.Frame):
 
@@ -86,7 +87,8 @@ class Registration(wx.Frame):
 
             x = mycol.insert_one(mydict)
 
-
+            self.restart = NoteAppClient()
+            self.restart.main()
 
         elif password != passwordverify:
             print("Registration Failed!")

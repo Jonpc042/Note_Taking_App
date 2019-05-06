@@ -13,7 +13,8 @@ class NoteAppClient:
 
     def __init__(self):
 
-        self.loginWindow = Login()
+        self.loginWindow = Login.Login(self, self, "Login")
+        self.loginWindow.main()
 
 
 def main(self):

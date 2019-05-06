@@ -49,6 +49,8 @@ class Login(wx.Frame):
         self.panel.SetSizerAndFit(self.border)
         self.SetSizerAndFit(self.windowSizer)
 
+        self.Show(True)
+
     def login_clicked(self, e):
         self.Hide()
         print("Button Pressed.")
@@ -97,13 +99,20 @@ class Login(wx.Frame):
         self.mynoteWindow.get_user(username)
         self.mynoteWindow.main()
 
-app = wx.App(False)
-frame = Login(None, "Notekeeper!")
-frame.Center()
-frame.Show()
-app.MainLoop()
+#app = wx.App(False)
+#frame = Login(None, "Notekeeper!")
+#frame.Center()
+#frame.Show()
+#app.MainLoop()
 
+def main(self):
+    app = wx.App()
+    view = Login()
+    view.main()
+    app.mainLoop()
 
+if __name__ == "__main__":
+     main()
 
 #Code partially taken from https://stackoverflow.com/questions/14927584/simple-example-of-using-wx-textctrl-and-display-data-after-button-click-in-wxpyt
 #by contributor Fenikso on 2/18/2013
