@@ -49,8 +49,10 @@ class Registration(wx.Frame):
             app.MainLoop()
 
     def __init__(self, parent, title):
+        super(Registration, self).__init__(parent, title=title)
         wx.Frame.__init__(self, parent, title=title)
         self.panel = wx.Panel(self)
+        self.client = parent
         self.loginfield = wx.TextCtrl(self.panel, size=(140, -1))
         self.logintitle = wx.StaticText(self.panel, label="Enter your username")
         self.emailfield = wx.TextCtrl(self.panel, size=(140, -1))
@@ -91,8 +93,17 @@ class Registration(wx.Frame):
         self.panel.SetSizerAndFit(self.border)
         self.SetSizerAndFit(self.windowSizer)
 
-app = wx.App(False)
-frame = Registration(None, "Notekeeper!")
-frame.Center()
-frame.Show()
-app.MainLoop()
+#app = wx.App(False)
+#frame = Registration(None, "Notekeeper!")
+#frame.Center()
+#frame.Show()
+#app.MainLoop()
+
+def main(self):
+    app = wx.App()
+    view = Registration()
+    view.main()
+    app.mainLoop()
+
+if __name__ == "__main__":
+    main()

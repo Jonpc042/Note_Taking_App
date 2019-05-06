@@ -1,64 +1,27 @@
 import wx
 import pymongo
 import hashlib
+import Note_Window
+import Registration
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 
 mydb = myclient["Notepad"]
 
 class Login(wx.Frame):
-    def login_clicked(self, e):
-        self.Hide()
-        print("Button Pressed.")
-
-        myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-        mydb = myclient["Notepad"]
-        mycol = mydb["users"]
-
-        username = self.loginfield.GetValue()
-        password = self.passfield.GetValue()
-
-        myquery = { "username": username }
-        for mydoc in mycol.find(myquery, {"_id":0 , "password": 1 , "salt": 1}):
-            print(mydoc)
-            print(mydoc.get("salt"))
-            print(mydoc.get("password"))
-
-            hashedpass = mydoc.get("password")
-            mysalt = str(mydoc.get("salt"))
-            myhash = hashlib.sha512((mysalt + password).encode('utf-8')).hexdigest()
-
-            print(myhash)
-
-            if myhash == hashedpass:
-                self.Hide()
-                from Note_Window import NoteWindow
-            elif myhash != hashedpass:
-                print("INCORRECT PASSWORD")
-
-    def exit_clicked(event, e):
-        print("Time to go!")
-        quit()
-
-    def register_clicked(self, e):
-        self.Hide()
-        print("Let's Register!")
-        from Registration import Registration
-
-    def show_win(self, e):
-        self.Show()
 
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title)
         self.panel = wx.Panel(self)
+        self.client = parent
         self.loginfield = wx.TextCtrl(self.panel, size=(140, -1))
         self.logintitle = wx.StaticText(self.panel, label="Enter your username")
         self.passfield = wx.TextCtrl(self.panel, size=(140, -1), style=wx.TE_PASSWORD)
         self.passtitle = wx.StaticText(self.panel, label="Enter your password")
 
-        self.loginbutton = wx.Button(self.panel, label="Login", pos=(130, 10), size=(60,30))
-        self.exitbutton = wx.Button(self.panel, label="Exit", pos=(130, 50), size=(60,30))
-        self.registerbutton = wx.Button(self.panel, label="Register", pos=(130, 90), size=(60,30))
+        self.loginbutton = wx.Button(self.panel, label="Login", pos=(130, 10), size=(60, 30))
+        self.exitbutton = wx.Button(self.panel, label="Exit", pos=(130, 50), size=(60, 30))
+        self.registerbutton = wx.Button(self.panel, label="Register", pos=(130, 90), size=(60, 30))
         self.loginbutton.Bind(wx.EVT_BUTTON, self.login_clicked)
         self.exitbutton.Bind(wx.EVT_BUTTON, self.exit_clicked)
         self.registerbutton.Bind(wx.EVT_BUTTON, self.register_clicked)
@@ -85,11 +48,59 @@ class Login(wx.Frame):
         self.panel.SetSizerAndFit(self.border)
         self.SetSizerAndFit(self.windowSizer)
 
+    def login_clicked(self, e):
+        self.Hide()
+        print("Button Pressed.")
+
+        myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+        mydb = myclient["Notepad"]
+        mycol = mydb["users"]
+
+        username = self.loginfield.GetValue()
+        password = self.passfield.GetValue()
+
+        myquery = { "username": username }
+        for mydoc in mycol.find(myquery, {"_id":0 , "password": 1 , "salt": 1}):
+            print(mydoc)
+            print(mydoc.get("salt"))
+            print(mydoc.get("password"))
+
+            hashedpass = mydoc.get("password")
+            mysalt = str(mydoc.get("salt"))
+            myhash = hashlib.sha512((mysalt + password).encode('utf-8')).hexdigest()
+
+            print(myhash)
+
+            if myhash == hashedpass:
+                self.Hide()
+                self.runNoteWindow(username)
+            elif myhash != hashedpass:
+                print("INCORRECT PASSWORD")
+
+    def exit_clicked(event, e):
+        print("Time to go!")
+        quit()
+
+    def register_clicked(self, e):
+        self.Hide()
+        print("Let's Register!")
+        self.myregister = Registration.Registration(self, "Registration")
+
+    def show_win(self, e):
+        self.Show()
+
+    def runNoteWindow(self, username):
+        print("WE MADE IT")
+        self.mynoteWindow = Note_Window.Note_Window(self, "Notes")
+        self.mynoteWindow.get_user(username)
+        self.mynoteWindow.main()
+
 app = wx.App(False)
 frame = Login(None, "Notekeeper!")
 frame.Center()
 frame.Show()
 app.MainLoop()
+
 
 
 #Code partially taken from https://stackoverflow.com/questions/14927584/simple-example-of-using-wx-textctrl-and-display-data-after-button-click-in-wxpyt

@@ -1,23 +1,36 @@
 #!/usr/bin/env python
 import wx
 import sys
+import pymongo
 import MyPanel
 import Note
 
-ID_BUTTON1=300
+username = "empty_username"
 
 def OnFrameExit(event):
     quit()
 
-class NoteWindow(wx.Frame):
-    def __init__(self, parent, title):
-        super(NoteWindow, self).__init__(parent, title=title,
-                                      size=(800, 600))
+def ask(parent=None, message='', value=''):
+    dlg = wx.TextEntryDialog(parent, message, value="")
+    dlg.ShowModal()
+    result = dlg.GetValue()
+    dlg.Destroy()
+    return result
 
-        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        groupPanelSizer = wx.BoxSizer(wx.VERTICAL)
-        notePanelSizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(mainSizer)
+
+class Note_Window(wx.Frame):
+    def __init__(self, parent, title):
+        super(Note_Window, self).__init__(parent, title=title,
+                                      size=(800, 600))
+        self.client = parent
+        self.number_of_buttons = 0
+
+        print(username)
+
+        self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.groupPanelSizer = wx.BoxSizer(wx.VERTICAL)
+        self.notePanelSizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.mainSizer)
 
         self.CreateStatusBar()
 
@@ -33,9 +46,9 @@ class NoteWindow(wx.Frame):
         filemenu.AppendSeparator()
         filemenu.Append(wx.ID_EXIT, "E&xit"," Terminate the program")
 
-        menuBar = wx.MenuBar()
-        menuBar.Append(filemenu,"&File")
-        self.SetMenuBar(menuBar)
+        self.menuBar = wx.MenuBar()
+        self.menuBar.Append(filemenu,"&File")
+        self.SetMenuBar(self.menuBar)
         self.Show(True)
 
         wx.EVT_MENU(self, wx.ID_ABOUT, self.OnAbout)
@@ -45,33 +58,84 @@ class NoteWindow(wx.Frame):
         wx.EVT_MENU(self, wx.ID_SAVEAS, self.OnSaveAs)
 
         #THIS IS TEMPORARY TEST CODE
-        noteSizer = wx.BoxSizer(wx.HORIZONTAL)
-        txt = wx.TextCtrl(self)
-        chk = wx.CheckBox(self, wx.ID_ANY, "")
-        btn = wx.Button(self, wx.ID_ANY, "Details")
-        noteSizer.Add(chk, flag=wx.ALL, border=10)
-        noteSizer.Add(txt, 1, flag=wx.EXPAND | wx.ALL, border=10)
-        noteSizer.Add(btn, flag=wx.ALL, border=10)
-        notePanelSizer.Add(noteSizer, flag= wx.EXPAND | wx.ALL, border=10)
+        self.noteSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.txt = wx.TextCtrl(self)
+        self.chk = wx.CheckBox(self, wx.ID_ANY, "")
+        self.btn = wx.Button(self, wx.ID_ANY, "Details")
+        self.noteSizer.Add(self.chk, flag=wx.ALL, border=10)
+        self.noteSizer.Add(self.txt, 1, flag=wx.EXPAND | wx.ALL, border=10)
+        self.noteSizer.Add(self.btn, flag=wx.ALL, border=10)
+        self.notePanelSizer.Add(self.noteSizer, flag= wx.EXPAND | wx.ALL, border=10)
         #END TEMPORARY TEST CODE
 
-        self.buttons = []
+        self.newgrpbut = wx.Button(self, size=(150,-1), label = "Add new Group")
+
+        self.groupPanelSizer.Add(self.newgrpbut, flag = wx.ALL, border = 10)
+
+        self.newgrpbut.Bind(wx.EVT_BUTTON, self.newgroup_clicked)
+
+        #self.buttons = []
         # Note - give the buttons numbers 1 to 6, generating events 301 to 306
         # because IB_BUTTON1 is 300
-        for i in range(6):
+        #for i in range(6):
             # describe a button
-            bid = i + 1
-            self.buttons.append(wx.Button(self, ID_BUTTON1 + i, "Button &" + str(bid)))
+        #    bid = i + 1
+        #    self.buttons.append(wx.Button(self, ID_BUTTON1 + i, "Button &" + str(bid)))
             # add that button to the sizer2 geometry
-            groupPanelSizer.Add(self.buttons[i], flag = wx.ALL, border = 10)
+        #    groupPanelSizer.Add(self.buttons[i], flag = wx.ALL, border = 10)
 
-        mainSizer.Add(groupPanelSizer, flag = wx.EXPAND)
-        mainSizer.Add(notePanelSizer, 1, flag= wx.EXPAND)
+        self.mainSizer.Add(self.groupPanelSizer, flag = wx.EXPAND)
+        self.mainSizer.Add(self.notePanelSizer, 1, flag= wx.EXPAND)
 
         #Adds a button event listener to exit the program.
         self.Bind(wx.EVT_MENU, OnFrameExit, id=wx.ID_EXIT)
         self.Bind(wx.EVT_CLOSE, self.OnExit)
 
+    def newgroup_clicked(self, event):
+        # When new group button is clicked, create a new group and place group button underneath
+        groupname = ask(message='Please name your new group of notes')
+
+        self.number_of_buttons += 1
+
+        self.label = groupname
+        self.name = groupname
+
+        self.new_button = wx.Button(self, label=self.label, size=(150,-1), name=self.name)
+
+        #self.new_button.Bind(self, wx.EVT_BUTTON, self.groupbutton_clicked)
+
+        self.groupPanelSizer.Add(self.new_button, 0, wx.ALL, 5)
+
+        self.mainSizer.Layout()
+        self.groupPanelSizer.Layout()
+        self.notePanelSizer.Layout()
+        self.new_button.Layout()
+
+        self.frame.Fit()
+        self.groupPanelSizer.Fit()
+        self.mainSizer.Fit()
+        self.notePanelSizer.Fit()
+        self.new_button.Fit()
+
+        #myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+        #mydb = myclient["Notepad"]
+        #mycol = mydb["notes"]
+
+        #mydict = {"userid": username, "groupid": groupname, "date": datetime, "title": title, "details": note_body, "ischecked": strike_thru}
+
+        #x = mycol.insert_one(mydict)
+
+    def delete_group(self, event):
+        if self.groupPanelSizer.GetChildren():
+            self.groupPanelSizer.Hide(self.number_of_buttons-1)
+            self.groupPanelSizer.Remove(self.number_of_buttons-1)
+            self.number_of_buttons -= 1
+            self.groupPanelSizer.Layout()
+            self.notePanelSizer()
+            self.groupPanelSizer.Fit()
+
+    def groupbutton_clicked(self, event):
+        z = False
 
     def OnAbout(self):
         # A modal show will lock out the other windows until it has
@@ -146,9 +210,19 @@ class NoteWindow(wx.Frame):
             except IOError:
                 wx.LogError("Cannot save current data in file '%s'." % pathname)
 
+    def get_user(self, user):
+        username = user
 
-app = wx.App(False)
-frame = NoteWindow(None, "Sample editor")
-frame.Center()
-app.MainLoop()
+#app = wx.App(False)
+#frame = NoteWindow(None, "Sample editor")
+#frame.Center()
+#app.MainLoop()
 
+def main(self):
+    app = wx.App()
+    view = Note_Window()
+    view.main()
+    app.mainLoop()
+
+if __name__ == "__main__":
+    main()
