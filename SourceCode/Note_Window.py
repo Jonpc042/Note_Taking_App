@@ -19,6 +19,7 @@ def ask(parent=None, message='', value=''):
 
 
 class Note_Window(wx.Frame):
+
     def __init__(self, parent, title):
         super(Note_Window, self).__init__(parent, title=title,
                                       size=(800, 600))
@@ -225,4 +226,4 @@ def main(self):
     app.mainLoop()
 
 if __name__ == "__main__":
-    main()
+     main()

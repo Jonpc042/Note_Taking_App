@@ -14,6 +14,7 @@ class Login(wx.Frame):
         wx.Frame.__init__(self, parent, title=title)
         self.panel = wx.Panel(self)
         self.client = parent
+
         self.loginfield = wx.TextCtrl(self.panel, size=(140, -1))
         self.logintitle = wx.StaticText(self.panel, label="Enter your username")
         self.passfield = wx.TextCtrl(self.panel, size=(140, -1), style=wx.TE_PASSWORD)
@@ -85,6 +86,7 @@ class Login(wx.Frame):
         self.Hide()
         print("Let's Register!")
         self.myregister = Registration.Registration(self, "Registration")
+        self.myregister.main()
 
     def show_win(self, e):
         self.Show()
