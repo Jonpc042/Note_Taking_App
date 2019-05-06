@@ -5,8 +5,6 @@ import pymongo
 import MyPanel
 import Note
 
-username = "empty_username"
-
 def OnFrameExit(event):
     quit()
 
@@ -20,17 +18,41 @@ def ask(parent=None, message='', value=''):
 
 class Note_Window(wx.Frame):
 
-    def __init__(self, parent, title):
+    def __init__(self, parent, title, username):
         super(Note_Window, self).__init__(parent, title=title,
                                       size=(800, 600))
+
+        client = pymongo.MongoClient(
+            "mongodb+srv://Jonpc042:SomePassword2019@cluster0-or0xk.mongodb.net/test?retryWrites=true")
+
+        db = client["NoteAppDataBase"]
+        usersCol = db["UserCollection"]
+        notesCol = db["NoteCollection"]
+
+        self.myNotes = []
+        myquery = {"UserID": self.username}
+        for x in notesCol.find(myquery):
+            
+
         self.client = parent
         self.number_of_buttons = 0
+        self.username = username
 
-        print(username)
+        print(self.username)
 
         self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.groupPanelSizer = wx.BoxSizer(wx.VERTICAL)
-        self.notePanelSizer = wx.BoxSizer(wx.VERTICAL)
+        #self.groupPanelSizer = wx.BoxSizer(wx.VERTICAL)
+        notes = []
+        note = Note.Note(self)
+        note1 = Note.Note(self)
+        note.title = "Note"
+        note.isChecked = False
+        note1.title = "Another Note"
+        note1.isChecked = True
+        notes.append(note)
+        notes.append(note1)
+
+        self.notePanelSizer = self.buildNotePanel(notes)
         self.SetSizer(self.mainSizer)
 
         self.CreateStatusBar()
@@ -55,25 +77,14 @@ class Note_Window(wx.Frame):
         wx.EVT_MENU(self, wx.ID_ABOUT, self.OnAbout)
         wx.EVT_MENU(self, wx.ID_EXIT, self.OnExit)
         wx.EVT_MENU(self, wx.ID_OPEN, self.OnOpen)
-        wx.EVT_MENU(self, wx.ID_SAVE, self.OnSave)  # just "pass" in our demo
+        wx.EVT_MENU(self, wx.ID_SAVE, self.OnSave)
         wx.EVT_MENU(self, wx.ID_SAVEAS, self.OnSaveAs)
 
-        #THIS IS TEMPORARY TEST CODE
-        self.noteSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.txt = wx.TextCtrl(self)
-        self.chk = wx.CheckBox(self, wx.ID_ANY, "")
-        self.btn = wx.Button(self, wx.ID_ANY, "Details")
-        self.noteSizer.Add(self.chk, flag=wx.ALL, border=10)
-        self.noteSizer.Add(self.txt, 1, flag=wx.EXPAND | wx.ALL, border=10)
-        self.noteSizer.Add(self.btn, flag=wx.ALL, border=10)
-        self.notePanelSizer.Add(self.noteSizer, flag= wx.EXPAND | wx.ALL, border=10)
-        #END TEMPORARY TEST CODE
+        #self.newgrpbut = wx.Button(self, size=(150,-1), label = "Add new Group")
 
-        self.newgrpbut = wx.Button(self, size=(150,-1), label = "Add new Group")
+        #self.groupPanelSizer.Add(self.newgrpbut, flag = wx.ALL, border = 10)
 
-        self.groupPanelSizer.Add(self.newgrpbut, flag = wx.ALL, border = 10)
-
-        self.newgrpbut.Bind(wx.EVT_BUTTON, self.newgroup_clicked)
+        #self.newgrpbut.Bind(wx.EVT_BUTTON, self.newgroup_clicked)
 
         #self.buttons = []
         # Note - give the buttons numbers 1 to 6, generating events 301 to 306
@@ -85,7 +96,7 @@ class Note_Window(wx.Frame):
             # add that button to the sizer2 geometry
         #    groupPanelSizer.Add(self.buttons[i], flag = wx.ALL, border = 10)
 
-        self.mainSizer.Add(self.groupPanelSizer, flag = wx.EXPAND)
+        #self.mainSizer.Add(self.groupPanelSizer, flag = wx.EXPAND)
         self.mainSizer.Add(self.notePanelSizer, 1, flag= wx.EXPAND)
 
         #Adds a button event listener to exit the program.
@@ -212,7 +223,34 @@ class Note_Window(wx.Frame):
                 wx.LogError("Cannot save current data in file '%s'." % pathname)
 
     def get_user(self, user):
-        username = user
+        self.username = user
+
+    def getNotes(self):
+        #get some notes
+        for i in range(0, 6):
+            print(i)
+
+    def buildNote(self, note):
+        noteSizer = wx.BoxSizer(wx.HORIZONTAL)
+        txt = wx.TextCtrl(self)
+        txt.SetLabelText(note.title)
+        chk = wx.CheckBox(self, wx.ID_ANY, "")
+        chk.SetValue(note.isChecked)
+        btn = wx.Button(self, wx.ID_ANY, "Details")
+        noteSizer.Add(chk, flag=wx.ALL, border=10)
+        noteSizer.Add(txt, 1, flag=wx.EXPAND | wx.ALL, border=10)
+        noteSizer.Add(btn, flag=wx.ALL, border=10)
+        return noteSizer
+
+    def buildNotePanel(self, notes):
+        sizerPanel = wx.BoxSizer(wx.VERTICAL)
+        for note in notes:
+            print("found note: " + note.title)
+            sizer = self.buildNote(note)
+            sizerPanel.Add(sizer, flag=wx.EXPAND | wx.ALL, border=10)
+        return sizerPanel
+
+
 
 #app = wx.App(False)
 #frame = NoteWindow(None, "Sample editor")

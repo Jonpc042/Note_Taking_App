@@ -101,9 +101,9 @@ class Login(wx.Frame):
 
     def runNoteWindow(self, username):
         print("WE MADE IT")
-        self.mynoteWindow = Note_Window.Note_Window(self, "Notes")
-        self.mynoteWindow.get_user(username)
-        self.mynoteWindow.main()
+        self.mynoteWindow = Note_Window.Note_Window(self, "Notes", username)
+        #self.mynoteWindow.get_user(username)
+        #self.mynoteWindow.main()
 
 app = wx.App(False)
 frame = Login(None, "Notekeeper!")

@@ -1,13 +1,13 @@
 import pymongo
 import datetime
 
-class note():
+class Note():
 
-    def __init__(self, parent, userid, groupid, date, title = "", details = "", ischecked = False):
+    def __init__(self, parent, userid=0, groupid=0, date=datetime.datetime.now(), title = "", details = "", ischecked = False):
 
         self.userID = userid
         self.groupID = groupid
-        self.date = datetime.datetime(date)
+        self.date = date
         self.title = title
         self.details = details
         self.isChecked = ischecked
