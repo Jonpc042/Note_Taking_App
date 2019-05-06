@@ -3,7 +3,7 @@ import pymongo
 import hashlib
 import random
 import string
-import NoteAppClient
+import Login
 
 class Registration(wx.Frame):
 
@@ -87,7 +87,7 @@ class Registration(wx.Frame):
 
             x = mycol.insert_one(mydict)
 
-            self.restart = NoteAppClient()
+            self.restart = Login.Login(self, "Login")
             self.restart.main()
 
         elif password != passwordverify:

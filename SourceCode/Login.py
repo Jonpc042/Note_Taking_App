@@ -8,6 +8,9 @@ myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 
 mydb = myclient["Notepad"]
 
+def alert(self):
+    wx.MessageBox('INCORRECT LOGIN CREDENTIALS', 'Alert!', wx.OK)
+
 class Login(wx.Frame):
 
     def __init__(self, parent, title):
@@ -64,9 +67,9 @@ class Login(wx.Frame):
 
         myquery = { "username": username }
         for mydoc in mycol.find(myquery, {"_id":0 , "password": 1 , "salt": 1}):
-            print(mydoc)
-            print(mydoc.get("salt"))
-            print(mydoc.get("password"))
+            #print(mydoc)
+            #print(mydoc.get("salt"))
+            #print(mydoc.get("password"))
 
             hashedpass = mydoc.get("password")
             mysalt = str(mydoc.get("salt"))
@@ -79,6 +82,9 @@ class Login(wx.Frame):
                 self.runNoteWindow(username)
             elif myhash != hashedpass:
                 print("INCORRECT PASSWORD")
+                alert(self)
+                new_login = Login(None, "Notekeeper!")
+                new_login.main()
 
     def exit_clicked(event, e):
         print("Time to go!")
@@ -99,20 +105,20 @@ class Login(wx.Frame):
         self.mynoteWindow.get_user(username)
         self.mynoteWindow.main()
 
-#app = wx.App(False)
-#frame = Login(None, "Notekeeper!")
-#frame.Center()
-#frame.Show()
-#app.MainLoop()
+app = wx.App(False)
+frame = Login(None, "Notekeeper!")
+frame.Center()
+frame.Show()
+app.MainLoop()
 
-def main(self):
-    app = wx.App()
-    view = Login()
-    view.main()
-    app.mainLoop()
+#def main(self):
+#    app = wx.App()
+#    view = Login()
+#    view.main()
+#    app.mainLoop()
 
-if __name__ == "__main__":
-     main()
+#if __name__ == "__main__":
+#     main()
 
 #Code partially taken from https://stackoverflow.com/questions/14927584/simple-example-of-using-wx-textctrl-and-display-data-after-button-click-in-wxpyt
 #by contributor Fenikso on 2/18/2013

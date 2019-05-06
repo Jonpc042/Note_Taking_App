@@ -1,6 +1,7 @@
 # First things, first. Import the wxPython package.
 import wx
 import Login
+import Note_Window
 import Note
 import User
 
@@ -11,11 +12,16 @@ import os
 
 class NoteAppClient:
 
+
+
     def __init__(self):
 
-        self.loginWindow = Login.Login(self, self, "Login")
-        self.loginWindow.main()
+        self.loginWindow = Login()
 
+
+    def runNoteWindow(self, username):
+        noteWindow = Note_Window(username)
+        noteWindow.main()
 
 def main(self):
     app = wx.App()
