@@ -4,6 +4,7 @@ import sys
 import pymongo
 import MyPanel
 import Note
+from bson.objectid import ObjectId
 
 def OnFrameExit(event):
     quit()
@@ -22,37 +23,53 @@ class Note_Window(wx.Frame):
         super(Note_Window, self).__init__(parent, title=title,
                                       size=(800, 600))
 
-        client = pymongo.MongoClient(
+        self.username = username
+        self.client = pymongo.MongoClient(
             "mongodb+srv://Jonpc042:SomePassword2019@cluster0-or0xk.mongodb.net/test?retryWrites=true")
 
-        db = client["NoteAppDataBase"]
-        usersCol = db["UserCollection"]
-        notesCol = db["NoteCollection"]
+        self.db = self.client["NoteAppDataBase"]
+        self.usersCol = self.db["UserCollection"]
+        self.notesCol = self.db["NoteCollection"]
+
+        btn = wx.Button(self, wx.ID_NEW, "New Note")
+        wx.EVT_BUTTON(self, wx.ID_NEW, self.OnNew)
+
 
         self.myNotes = []
         myquery = {"UserID": self.username}
-        for x in notesCol.find(myquery):
-            
+        for x in self.notesCol.find(myquery):
+            note = Note.Note(self)
+            note.fromDocument(x)
+            self.myNotes.append(note)
+            print("Added Note: " + note.title.GetLabelText())
 
-        self.client = parent
+        self.mainClient = parent
         self.number_of_buttons = 0
-        self.username = username
 
         print(self.username)
 
         self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         #self.groupPanelSizer = wx.BoxSizer(wx.VERTICAL)
-        notes = []
         note = Note.Note(self)
         note1 = Note.Note(self)
         note.title = "Note"
         note.isChecked = False
         note1.title = "Another Note"
         note1.isChecked = True
-        notes.append(note)
-        notes.append(note1)
+        note2 = Note.Note(self)
+        note2.title = "A third Note"
+        note2.isChecked = False
+        note3 = Note.Note(self)
+        note3.title = "A fourth Note"
+        note3.isChecked = True
+        #self.myNotes.append(note)
+        #self.myNotes.append(note1)
+        #self.myNotes.append(note2)
+        #self.myNotes.append(note3)
 
-        self.notePanelSizer = self.buildNotePanel(notes)
+        self.notePanelSizer = wx.BoxSizer(wx.VERTICAL)
+        self.notePanelSizer.Add(btn, flag=wx.ALL, border=10)
+        self.notePanelSizer = self.buildNotePanel(self.notePanelSizer, self.myNotes)
         self.SetSizer(self.mainSizer)
 
         self.CreateStatusBar()
@@ -74,11 +91,11 @@ class Note_Window(wx.Frame):
         self.SetMenuBar(self.menuBar)
         self.Show(True)
 
-        wx.EVT_MENU(self, wx.ID_ABOUT, self.OnAbout)
-        wx.EVT_MENU(self, wx.ID_EXIT, self.OnExit)
-        wx.EVT_MENU(self, wx.ID_OPEN, self.OnOpen)
-        wx.EVT_MENU(self, wx.ID_SAVE, self.OnSave)
-        wx.EVT_MENU(self, wx.ID_SAVEAS, self.OnSaveAs)
+        #wx.EVT_MENU(self, wx.ID_ABOUT, self.OnAbout)
+        #wx.EVT_MENU(self, wx.ID_EXIT, self.OnExit)
+        #wx.EVT_MENU(self, wx.ID_OPEN, self.OnOpen)
+        #wx.EVT_MENU(self, wx.ID_SAVE, self.OnSave)
+        #wx.EVT_MENU(self, wx.ID_SAVEAS, self.OnSaveAs)
 
         #self.newgrpbut = wx.Button(self, size=(150,-1), label = "Add new Group")
 
@@ -100,8 +117,8 @@ class Note_Window(wx.Frame):
         self.mainSizer.Add(self.notePanelSizer, 1, flag= wx.EXPAND)
 
         #Adds a button event listener to exit the program.
-        self.Bind(wx.EVT_MENU, OnFrameExit, id=wx.ID_EXIT)
-        self.Bind(wx.EVT_CLOSE, self.OnExit)
+        #self.Bind(wx.EVT_MENU, OnFrameExit, id=wx.ID_EXIT)
+        #self.Bind(wx.EVT_CLOSE, self.OnExit)
 
     def newgroup_clicked(self, event):
         # When new group button is clicked, create a new group and place group button underneath
@@ -149,78 +166,21 @@ class Note_Window(wx.Frame):
     def groupbutton_clicked(self, event):
         z = False
 
-    def OnAbout(self):
-        # A modal show will lock out the other windows until it has
-        # been dealt with. Very useful in some programming tasks to
-        # ensure that things happen in an order that  the programmer
-        # expects, but can be very frustrating to the user if it is
-        # used to excess!
-        self.aboutme.ShowModal()  # Shows it
-        # widget / frame defined earlier so it can come up fast when needed
+    def OnNew(self, e):
+        #add a new note
+        note = Note.Note(self)
+        sizer = self.buildNote(note)
+        self.notePanelSizer.Add(sizer, flag=wx.EXPAND | wx.ALL, border=10)
+        self.notePanelSizer.Layout()
 
-    def OnExit(self, e):
-        # A modal with an "are you sure" check - we don't want to exit
-        # unless the user confirms the selection in this case ;-)
-        #igot = self.doiexit.ShowModal()  # Shows it
-        self.Close(True)  # Closes out this simple application
-        sys.exit(0)
+    def save_clicked(self, event):
+        print("Save was clicked!")
 
-    def OnOpen(self, e):
-        # In this case, the dialog is created within the method because
-        # the directory name, etc, may be changed during the running of the
-        # application. In theory, you could create one earlier, store it in
-        # your frame object and change it when it was called to reflect
-        # current parameters / values
-        dlg = wx.FileDialog(self, "Choose a file", self.dirname, "", "*.*", wx.OPEN)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.filename = dlg.GetFilename()
-            self.dirname = dlg.GetDirectory()
-
-            # Open the file, read the contents and set them into
-            # the text edit window
-            filehandle = open(os.path.join(self.dirname, self.filename), 'r')
-            self.control.SetValue(filehandle.read())
-            filehandle.close()
-
-            # Report on name of latest file read
-            self.SetTitle("Editing ... " + self.filename)
-            # Later - could be enhanced to include a "changed" flag whenever
-            # the text is actually changed, could also be altered on "save" ...
-        dlg.Destroy()
-
-    def OnSave(self, e):
-        # Save away the edited text
-        # Open the file, do an RU sure check for an overwrite!
-        dlg = wx.FileDialog(self, "Choose a file", self.dirname, "", "*.*", \
-                            wx.SAVE | wx.OVERWRITE_PROMPT)
-        if dlg.ShowModal() == wx.ID_OK:
-            # Grab the content to be saved
-            itcontains = self.control.GetValue()
-
-            # Open the file for write, write, close
-            self.filename = dlg.GetFilename()
-            self.dirname = dlg.GetDirectory()
-            filehandle = open(os.path.join(self.dirname, self.filename), 'w')
-            filehandle.write(itcontains)
-            filehandle.close()
-        # Get rid of the dialog to keep things tidy
-        dlg.Destroy()
-
-    def OnSaveAs(self, event):
-
-        with wx.FileDialog(self, "Save XYZ file", wildcard="XYZ files (*.xyz)|*.xyz",
-                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
-
-            if fileDialog.ShowModal() == wx.ID_CANCEL:
-                return  # the user changed their mind
-
-            # save the current contents in the file
-            pathname = fileDialog.GetPath()
-            try:
-                with open(pathname, 'w') as file:
-                    self.doSaveData(file)
-            except IOError:
-                wx.LogError("Cannot save current data in file '%s'." % pathname)
+        note = event.GetEventObject().GetParent()
+        mydict = note.toDocument()
+        query = {"_id" : mydict.get("_id")}
+        update = { "$set": mydict}
+        self.notesCol.update_one(query, update, upsert=True)
 
     def get_user(self, user):
         self.username = user
@@ -232,20 +192,16 @@ class Note_Window(wx.Frame):
 
     def buildNote(self, note):
         noteSizer = wx.BoxSizer(wx.HORIZONTAL)
-        txt = wx.TextCtrl(self)
-        txt.SetLabelText(note.title)
-        chk = wx.CheckBox(self, wx.ID_ANY, "")
-        chk.SetValue(note.isChecked)
-        btn = wx.Button(self, wx.ID_ANY, "Details")
-        noteSizer.Add(chk, flag=wx.ALL, border=10)
-        noteSizer.Add(txt, 1, flag=wx.EXPAND | wx.ALL, border=10)
-        noteSizer.Add(btn, flag=wx.ALL, border=10)
+
+        note.btn.Bind(wx.EVT_BUTTON, self.save_clicked)
+        noteSizer.Add(note.isChecked, flag=wx.ALL, border=10)
+        noteSizer.Add(note.title, 1, flag=wx.EXPAND | wx.ALL, border=10)
+        noteSizer.Add(note.btn, flag=wx.ALL, border=10)
+        print("built note: " + note.title.GetLabelText())
         return noteSizer
 
-    def buildNotePanel(self, notes):
-        sizerPanel = wx.BoxSizer(wx.VERTICAL)
+    def buildNotePanel(self, sizerPanel, notes):
         for note in notes:
-            print("found note: " + note.title)
             sizer = self.buildNote(note)
             sizerPanel.Add(sizer, flag=wx.EXPAND | wx.ALL, border=10)
         return sizerPanel
