@@ -4,7 +4,7 @@ import hashlib
 import Note_Window
 import Registration
 
-myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+myclient = pymongo.MongoClient("mongodb+srv://Jonpc042:SomePassword2019@cluster0-or0xk.mongodb.net/test?retryWrites=true")
 
 mydb = myclient["Notepad"]
 
@@ -58,9 +58,9 @@ class Login(wx.Frame):
         self.Hide()
         print("Button Pressed.")
 
-        myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-        mydb = myclient["Notepad"]
-        mycol = mydb["users"]
+        myclient = pymongo.MongoClient("mongodb+srv://Jonpc042:SomePassword2019@cluster0-or0xk.mongodb.net/test?retryWrites=true")
+        mydb = myclient["NoteAppDataBase"]
+        mycol = mydb["UserCollection"]
 
         username = self.loginfield.GetValue()
         password = self.passfield.GetValue()

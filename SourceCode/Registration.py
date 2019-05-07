@@ -62,9 +62,9 @@ class Registration(wx.Frame):
     def register_clicked(self, e):
         self.Hide()
 
-        myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-        mydb = myclient["Notepad"]
-        mycol = mydb["users"]
+        myclient = pymongo.MongoClient("mongodb+srv://Jonpc042:SomePassword2019@cluster0-or0xk.mongodb.net/test?retryWrites=true")
+        mydb = myclient["NoteAppDataBase"]
+        mycol = mydb["UserCollection"]
 
         username = self.loginfield.GetValue()
         email = self.emailfield.GetValue()

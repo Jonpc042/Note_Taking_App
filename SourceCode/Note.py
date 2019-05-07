@@ -1,40 +1,34 @@
 import pymongo
 import datetime
-import wx
-from bson.objectid import ObjectId
 
-class Note(wx.Frame):
+class Note():
 
-    def __init__(self, parent, userid=0, date=datetime.datetime.now(), title = "", details = "", ischecked = False):
-        super(Note, self).__init__(parent, title=title)
+    def __init__(self, parent, userid=0, uniqueid=0, date=datetime.datetime.now(), title = "", details = "", ischecked = False):
 
         self.userID = userid
-        self.uniqueID = ObjectId()
+        self.uniqueID = uniqueid
         self.date = date
-        self.title = wx.TextCtrl(parent)
-        self.title.SetLabelText(title)
+        self.title = title
         self.details = details
-        self.isChecked = wx.CheckBox(parent)
-        self.isChecked.SetValue(ischecked == True)
-        self.btn = wx.Button(parent)
-        self.btn.SetLabelText("Save")
+        self.isChecked = ischecked
+
 
 
     def toDocument(self) -> dict:
-        mydict = {"_id" : self.uniqueID,
-                  "UserID": self.userID,
+        mydict = {"UserID": self.userID,
+                  "UniqueID": self.uniqueID,
                   "Date": self.date,
-                  "Title": self.title.GetLabelText(),
+                  "Title": self.title,
                   "Details": self.details,
-                  "IsChecked": str(self.isChecked.GetValue())}
+                  "IsChecked": self.details}
         return mydict
 
-    def fromDocument(self, dict):
-        self.uniqueID = dict.get('_id')
-        self.userID = dict.get('UserID')
-        self.date = dict.get('Date')
-        self.title.SetLabelText(dict.get('Title'))
-        self.details = dict.get('Details')
-        self.isChecked.SetValue(dict.get('IsChecked'))
-
+    def fromDocument(cls, dict):
+        userid = dict.get('UserID')
+        uniqueid = dict.get('UniqueID')
+        date = dict.get('Date')
+        title = dict.get('Title')
+        details = dict.get('Details')
+        ischecked = dict.get('IsChecked')
+        return cls(userid, uniqueid, date, title, details, ischecked)
 

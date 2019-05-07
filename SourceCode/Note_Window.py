@@ -4,6 +4,7 @@ import sys
 import pymongo
 import MyPanel
 import Note
+import datetime
 from bson.objectid import ObjectId
 
 def OnFrameExit(event):
@@ -23,53 +24,49 @@ class Note_Window(wx.Frame):
         super(Note_Window, self).__init__(parent, title=title,
                                       size=(800, 600))
 
-        self.username = username
-        self.client = pymongo.MongoClient(
-            "mongodb+srv://Jonpc042:SomePassword2019@cluster0-or0xk.mongodb.net/test?retryWrites=true")
+        self.allmynotesizers = []
+        self.allmynotes = []
+        self.allmynotes_index = 0
+        self.buttons = []
+        self.tfields = []
 
-        self.db = self.client["NoteAppDataBase"]
-        self.usersCol = self.db["UserCollection"]
-        self.notesCol = self.db["NoteCollection"]
+        #client = pymongo.MongoClient(
+            #"mongodb+srv://Jonpc042:SomePassword2019@cluster0-or0xk.mongodb.net/test?retryWrites=true")
 
-        btn = wx.Button(self, wx.ID_NEW, "New Note")
-        wx.EVT_BUTTON(self, wx.ID_NEW, self.OnNew)
+        #db = client["NoteAppDataBase"]
+        #usersCol = db["UserCollection"]
+        #notesCol = db["NoteCollection"]
 
+        myclient = pymongo.MongoClient("mongodb+srv://Jonpc042:SomePassword2019@cluster0-or0xk.mongodb.net/test?retryWrites=true")
+        mydb = myclient["NoteAppDataBase"]
+        mycol = mydb["NoteCollection"]
+
+        btn = wx.Button(self, wx.ID_NEW, "New Note", size=(150, 30))
+        self.newnoteSizer = wx.BoxSizer(wx.VERTICAL)
+        self.newnoteSizer.Add(btn, 0, wx.CENTER)
 
         self.myNotes = []
-        myquery = {"UserID": self.username}
-        for x in self.notesCol.find(myquery):
-            note = Note.Note(self)
-            note.fromDocument(x)
-            self.myNotes.append(note)
-            print("Added Note: " + note.title.GetLabelText())
+        myquery = {"UserID": username}
+        print(myquery)
+        for mydoc in mycol.find(myquery, {"_id":1 , "Date": 1, "Title": 1 , "Details": 1, "IsChecked": 1}):
+            newnote = Note.Note(self)
+            newnote.uniqueID = mydoc.get("_id")
+            newnote.date = mydoc.get("Date")
+            newnote.title = mydoc.get("Title")
+            newnote.details = mydoc.get("Details")
+            newnote.isChecked = mydoc.get("IsChecked")
+            self.myNotes.append(newnote)
 
-        self.mainClient = parent
+        self.client = parent
         self.number_of_buttons = 0
-
-        print(self.username)
+        self.username = username
 
         self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        #self.groupPanelSizer = wx.BoxSizer(wx.VERTICAL)
-        note = Note.Note(self)
-        note1 = Note.Note(self)
-        note.title = "Note"
-        note.isChecked = False
-        note1.title = "Another Note"
-        note1.isChecked = True
-        note2 = Note.Note(self)
-        note2.title = "A third Note"
-        note2.isChecked = False
-        note3 = Note.Note(self)
-        note3.title = "A fourth Note"
-        note3.isChecked = True
-        #self.myNotes.append(note)
-        #self.myNotes.append(note1)
-        #self.myNotes.append(note2)
-        #self.myNotes.append(note3)
 
-        self.notePanelSizer = wx.BoxSizer(wx.VERTICAL)
-        self.notePanelSizer.Add(btn, flag=wx.ALL, border=10)
-        self.notePanelSizer = self.buildNotePanel(self.notePanelSizer, self.myNotes)
+        #self.addnote = wx.Button(self.panel, wx.ID_ANY, label="add new note", size=(60, 30))
+        #self.addnote.Bind(wx.EVT_BUTTON, self.addnote_clicked)
+
+        self.notePanelSizer = self.buildNotePanel(self.myNotes)
         self.SetSizer(self.mainSizer)
 
         self.CreateStatusBar()
@@ -91,34 +88,16 @@ class Note_Window(wx.Frame):
         self.SetMenuBar(self.menuBar)
         self.Show(True)
 
-        #wx.EVT_MENU(self, wx.ID_ABOUT, self.OnAbout)
-        #wx.EVT_MENU(self, wx.ID_EXIT, self.OnExit)
-        #wx.EVT_MENU(self, wx.ID_OPEN, self.OnOpen)
-        #wx.EVT_MENU(self, wx.ID_SAVE, self.OnSave)
-        #wx.EVT_MENU(self, wx.ID_SAVEAS, self.OnSaveAs)
+        wx.EVT_MENU(self, wx.ID_EXIT, self.OnExit)
 
-        #self.newgrpbut = wx.Button(self, size=(150,-1), label = "Add new Group")
-
-        #self.groupPanelSizer.Add(self.newgrpbut, flag = wx.ALL, border = 10)
-
-        #self.newgrpbut.Bind(wx.EVT_BUTTON, self.newgroup_clicked)
-
-        #self.buttons = []
-        # Note - give the buttons numbers 1 to 6, generating events 301 to 306
-        # because IB_BUTTON1 is 300
-        #for i in range(6):
-            # describe a button
-        #    bid = i + 1
-        #    self.buttons.append(wx.Button(self, ID_BUTTON1 + i, "Button &" + str(bid)))
-            # add that button to the sizer2 geometry
-        #    groupPanelSizer.Add(self.buttons[i], flag = wx.ALL, border = 10)
-
-        #self.mainSizer.Add(self.groupPanelSizer, flag = wx.EXPAND)
         self.mainSizer.Add(self.notePanelSizer, 1, flag= wx.EXPAND)
+        self.mainSizer.Add(self.newnoteSizer, 1, flag= wx.EXPAND)
 
         #Adds a button event listener to exit the program.
-        #self.Bind(wx.EVT_MENU, OnFrameExit, id=wx.ID_EXIT)
-        #self.Bind(wx.EVT_CLOSE, self.OnExit)
+        self.Bind(wx.EVT_MENU, OnFrameExit, id=wx.ID_EXIT)
+        self.Bind(wx.EVT_CLOSE, self.OnExit)
+        self.Bind(wx.EVT_BUTTON, self.save_clicked)
+        self.Bind(wx.EVT_BUTTON, self.addnote_clicked)
 
     def newgroup_clicked(self, event):
         # When new group button is clicked, create a new group and place group button underneath
@@ -154,64 +133,138 @@ class Note_Window(wx.Frame):
 
         #x = mycol.insert_one(mydict)
 
-    def delete_group(self, event):
-        if self.groupPanelSizer.GetChildren():
-            self.groupPanelSizer.Hide(self.number_of_buttons-1)
-            self.groupPanelSizer.Remove(self.number_of_buttons-1)
-            self.number_of_buttons -= 1
-            self.groupPanelSizer.Layout()
-            self.notePanelSizer()
-            self.groupPanelSizer.Fit()
-
-    def groupbutton_clicked(self, event):
-        z = False
-
-    def OnNew(self, e):
-        #add a new note
-        note = Note.Note(self)
-        sizer = self.buildNote(note)
-        self.notePanelSizer.Add(sizer, flag=wx.EXPAND | wx.ALL, border=10)
-        self.notePanelSizer.Layout()
-
-    def save_clicked(self, event):
-        print("Save was clicked!")
-
-        note = event.GetEventObject().GetParent()
-        mydict = note.toDocument()
-        query = {"_id" : mydict.get("_id")}
-        update = { "$set": mydict}
-        self.notesCol.update_one(query, update, upsert=True)
+    def OnExit(self, e):
+        # A modal with an "are you sure" check - we don't want to exit
+        # unless the user confirms the selection in this case ;-)
+        #igot = self.doiexit.ShowModal()  # Shows it
+        self.Close(True)  # Closes out this simple application
+        sys.exit(0)
 
     def get_user(self, user):
         self.username = user
+
+    def save_clicked(self, event):
+        print("doingsomething!")
+        thenewtext = ""
+        theid = str(event.GetEventObject().myname)
+
+        print(self.buttons.index(event.GetEventObject()))
+        num = self.buttons.index(event.GetEventObject())
+        print(self.tfields[num])
+        tmp = self.tfields[num]
+        thenewtext = tmp.GetValue()
+
+        print(thenewtext)
+        myclient = pymongo.MongoClient("mongodb+srv://Jonpc042:SomePassword2019@cluster0-or0xk.mongodb.net/test?retryWrites=true")
+        mydb = myclient["NoteAppDataBase"]
+        mycol = mydb["NoteCollection"]
+        myquery = {"UserID": self.username}
+
+        print("doingsomething2")
+        for mydoc in mycol.find(myquery, {"_id": 1, "UserID": 1, "UniqueID": 1, "Date": 1, "Title": 1, "Details": 1, "IsChecked": 1}):
+            print("doingsomething3")
+            print(mydoc.get("_id"))
+            print(theid)
+            if str(mydoc.get("_id")) == theid:
+                ob = ObjectId(theid)
+                print("doingsomething4")
+                mydict = {"UserID": mydoc.get("UserID"),
+                          "UniqueID": theid,
+                          "Date": mydoc.get("Date"),
+                          "Title": thenewtext,
+                          "Details": mydoc.get("Details"),
+                          "IsChecked": mydoc.get("IsChecked")}
+                #newvalues = {"$set": mydict}
+                x = mycol.update_one({"_id": ObjectId(theid)},{'$set': mydict}, upsert=True)
+                print("doingsomething5")
+            else:
+                print("Couldn't find the file")
 
     def getNotes(self):
         #get some notes
         for i in range(0, 6):
             print(i)
 
-    def buildNote(self, note):
-        noteSizer = wx.BoxSizer(wx.HORIZONTAL)
+    def getupdatenotetext(self):
+        val = self.txt.GetValue()
+        return val
 
-        note.btn.Bind(wx.EVT_BUTTON, self.save_clicked)
-        noteSizer.Add(note.isChecked, flag=wx.ALL, border=10)
-        noteSizer.Add(note.title, 1, flag=wx.EXPAND | wx.ALL, border=10)
-        noteSizer.Add(note.btn, flag=wx.ALL, border=10)
-        print("built note: " + note.title.GetLabelText())
+    def buildNote(self, note):
+        buttonid = note.uniqueID
+        inthetext = note.title
+        noteSizer = wx.BoxSizer(wx.HORIZONTAL)
+        txt = wx.TextCtrl(self)
+        #txt.Bind(wx.EVT_TEXT, self.EvtText)
+        txt.SetLabelText(note.title)
+        txt.name = note.uniqueID
+        txt.mytext = ""
+        chk = wx.CheckBox(self, wx.ID_ANY, "")
+        if note.isChecked == "True":
+            chk.SetValue(True)
+        elif note.isChecked == "False":
+            chk.SetValue(False)
+        btn = wx.Button(self, wx.ID_ANY, "Save")
+        btn.myname = buttonid
+        btn.Bind(wx.EVT_BUTTON, self.save_clicked)
+        noteSizer.Add(chk, flag=wx.ALL, border=10)
+        noteSizer.Add(txt, 1, flag=wx.EXPAND | wx.ALL, border=10)
+        noteSizer.Add(btn, flag=wx.ALL, border=10)
+        self.buttons.append(btn)
+        self.tfields.append(txt)
         return noteSizer
 
-    def buildNotePanel(self, sizerPanel, notes):
+    def EvtText(self, event):
+        tempint = self.tfields.index(self)
+        self.tfields[tempint].GetValue()
+
+    def buildNotePanel(self, notes):
+        sizerPanel = wx.BoxSizer(wx.VERTICAL)
         for note in notes:
+            print("found note: " + note.title)
             sizer = self.buildNote(note)
             sizerPanel.Add(sizer, flag=wx.EXPAND | wx.ALL, border=10)
         return sizerPanel
 
+    def addnote_clicked(self, event):
+        myclient = pymongo.MongoClient("mongodb+srv://Jonpc042:SomePassword2019@cluster0-or0xk.mongodb.net/test?retryWrites=true")
+        mydb = myclient["NoteAppDataBase"]
+        mycol = mydb["NoteCollection"]
 
+        #theid = str(event.GetEventObject().myname)
 
-#app = wx.App(False)
-#frame = NoteWindow(None, "Sample editor")
-#frame.Center()
-#app.MainLoop()
+        mytime = datetime.datetime.now()
+
+        print("ADD NOTE")
+
+        mydict = {"UserID": self.username,
+                  "UniqueID": "",
+                  "Date": str(mytime.date()),
+                  "Title": "",
+                  "Details": "",
+                  "IsChecked": "False"}
+        x = mycol.insert_one(mydict)
+
+        getback = mycol.find_one( {"UserID": self.username}, sort=[( "_id", pymongo.DESCENDING )])
+
+        mydict = {"UserID": getback.get("UserID"),
+                  "UniqueID": str(getback.get("_id")),
+                  "Date": getback.get("Date"),
+                  "Title": getback.get("Title"),
+                  "Details": getback.get("Details"),
+                  "IsChecked": getback.get("IsChecked")}
+        x = mycol.update_one({"_id": ObjectId(getback.get("_id"))},{'$set': mydict}, upsert=True)
+        note = Note.Note(self)
+        note.uniqueID = getback.get("_id")
+        note.date = getback.get("Date")
+        note.title = getback.get("Title")
+        note.details = getback.get("Details")
+        note.isChecked = getback.get("IsChecked")
+        self.myNotes.append(note)
+        sizer = self.buildNote(note)
+        self.notePanelSizer.Add(sizer, flag=wx.EXPAND | wx.ALL, border=10)
+        self.notePanelSizer.Layout()
+        #another = Note_Window.Note_Window(self, "Notes", self.username)
+
 
 def main(self):
     app = wx.App()
